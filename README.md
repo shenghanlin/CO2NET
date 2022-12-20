@@ -1,11 +1,8 @@
 # CO2NET
 Deep learning for characterizing CO2 migration in time-lapse seismic images[pdf](https://www.sciencedirect.com/science/article/abs/pii/S0016236122036304)
 
-项目描述从这里开始。
 
 ## Introduction
-
-这些说明将为您提供在本地计算机上启动和运行的项目副本，以进行开发和测试。有关如何在实时系统上部署项目的说明，请参阅部署。
 
 <!-- more -->
 
