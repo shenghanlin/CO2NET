@@ -1,7 +1,5 @@
 # CO2NET
-Deep learning for characterizing CO2 migration in time-lapse seismic images
-
- [文献地址](https://www.sciencedirect.com/science/article/abs/pii/S0016236122036304)
+Deep learning for characterizing CO2 migration in time-lapse seismic images[pdf](https://www.sciencedirect.com/science/article/abs/pii/S0016236122036304)
 
 项目描述从这里开始。
 
@@ -33,12 +31,14 @@ https://drive.google.com/drive/folders/1hHDkq3qyqNUU3V221OaWHGTcn458YyNg?usp=sha
 python train.py
 ```
 
+### Prediction
+
+
+```python
+python apply_field.py  name #### Name is the name of the model used for prediction 
+                            #### field, Valid, FeatureMap are three programs for predicting the field data, the synthetic data, and the Feature Map.
+```
+
 ## Citation
 
  To be updated......
-
-## 致谢
-
-- 给任何使用此项目的人的提示
-- 线路图
-- 等等
