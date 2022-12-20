@@ -13,17 +13,12 @@ from unet import *
 datapath = '../../'
 def main(argv):
   loadModel(argv[1])
-  # goLayers()
-  # goF2Full(argv[1])
-  gop10D()
-  # gop10()
+  gop10()
   # gop07_01()
   # gop07_04()
   # gop07_06()
   # gop08()
   # gop99()
-  # gop10()
-
 
 
   
@@ -36,34 +31,6 @@ def loadModel(mk):
   #model.load_weights('./check/unet-22.hdf5', by_name=True)
   # model = load_model('../deeplearning/net/check/fseg-'+str(mk)+'.hdf5')
   
-
-def goLayers():
-
-  fpath = "/home/hlsheng/hlsheng_dhale/data/valid/sx/"
-  lpath = "/home/hlsheng/hlsheng_dhale/data/valid/lx/"
-
-  for i in range(51,100):
-    fname =str(i)+".dat"
-    n1,n2,n3 = 240,192,192
-    gx = np.fromfile(fpath+fname,dtype=np.single)# dtype='>f'
-    lx = np.fromfile(lpath+fname,dtype=np.single)# dtype='>f'
-    gx.tofile("./test/valid_sx/"+fname,format="%4") #  fx.tofile(fpath+"fpd.dat",format="%4")
-    lx.tofile("./test/valid_lx/"+fname,format="%4") #  fx.tofile(fpath+"fpd.dat",format="%4")
-    print(np.max(gx),np.min(gx))
-    gx = np.reshape(gx,(n3,n2,n1))
-    gm = np.mean(gx)
-    gs = np.std(gx)
-    gx = gx-gm
-    gx = gx/gs
-    gx = np.transpose(gx)
-    print(gx.shape)
-    fx = goPredict(n1,n2,n3,gx)#make a prediction 
-    fx = np.transpose(fx)
-    print(np.min(fx),np.max(fx))
-    fx.tofile("./test/valid_fx/"+fname,format="%4") #  fx.tofile(fpath+"fpd.dat",format="%4")
-    # gx.tofile("./test/valid_sx/"+fname,format="%4") #  fx.tofile(fpath+"fpd.dat",format="%4")
-    # lx.tofile("./test/valid_lx/"+fname,format="%4") #  fx.tofile(fpath+"fpd.dat",format="%4")
-
 
 def gop99(): 
 
@@ -217,10 +184,10 @@ def gop10():
   fx.tofile(fpath+"fp_"+'mseN_'+fname,format="%4") #  fx.tofile(fpath+"fpd.dat",format="%4")
 
 
-def gop10D(): 
+def gop10(): 
 
   fpath = "./partcutnea/"
-  fname ="10p10cutneaD.dat"
+  fname ="10p10cutnea.dat"
   n1,n2,n3 = 256,468,245
   gx = np.fromfile(fpath+fname,dtype=np.single)# dtype='>f'
   print(np.max(gx),np.min(gx))
@@ -245,92 +212,6 @@ def gop10D():
   fx = np.transpose(fx)
   print(np.min(fx),np.max(fx))
   fx.tofile(fpath+"fp_"+'mseN_'+fname,format="%4") #  fx.tofile(fpath+"fpd.dat",format="%4")
-
-
-def gop10M(): 
-
-  fpath = "./partcutnea/"
-  fname ="10p10cutneaM.dat"
-  n1,n2,n3 = 254,468,245
-  gx = np.fromfile(fpath+fname,dtype=np.single)# dtype='>f'
-  print(np.max(gx),np.min(gx))
-  gx = np.reshape(gx,(n3,n2,n1))
-  gm = np.mean(gx)
-  gs = np.std(gx)
-  gx = gx-gm
-  gx = gx/gs
-  gx = np.transpose(gx)
-  
-  m1 = int(np.ceil(n1/16)*16)
-  m2 = int(np.ceil(n2/16)*16)
-  m3 = int(np.ceil(n3/16)*16)
-  m1,m2,m3=128,512,256  #m1,m2,m3=256,512,256
-  
-  fx = goPredict(m1,m2,m3,gx)#make a prediction 
-  fx = np.transpose(fx)
-  print(np.min(fx),np.max(fx))
-  fx.tofile(fpath+"fp_"+'mseN_'+fname,format="%4") #  fx.tofile(fpath+"fpd.dat",format="%4")
-
-
-def gop11(): 
-
-  fpath = "./partcutnea/"
-  fname ="10p11cutnea.dat"
-  n1,n2,n3 = 512,1024,170
-  gx = np.fromfile(fpath+fname,dtype=np.single)# dtype='>f'
-  print(np.max(gx),np.min(gx))
-  gx = np.reshape(gx,(n3,n2,n1))
-  gm = np.mean(gx)
-  gs = np.std(gx)
-  gx = gx-gm
-  gx = gx/gs
-  gx = np.transpose(gx)
-  
-  m1 = int(np.ceil(n1/16)*16)
-  m2 = int(np.ceil(n2/16)*16)
-  m3 = int(np.ceil(n3/16)*16)
-  m1,m2,m3 = 512,1024,256  #m1,m2,m3=512,512,512
-  
-  fx = goPredict(m1,m2,m3,gx)#make a prediction 
-  fx = np.transpose(fx)
-  print(np.min(fx),np.max(fx))
-  fx.tofile(fpath+"fp_"+'mseN_'+fname,format="%4") #  fx.tofile(fpath+"fpd.dat",format="%4")
-
-def gop10test(): 
-
-  fpath = "./partnea/"
-  fname ="10p10partnea.dat"
-  n1,n2,n3 = 512,512,256
-  gx = np.fromfile(fpath+fname,dtype=np.single)# dtype='>f'
-  print(np.max(gx),np.min(gx))
-  gx = np.reshape(gx,(n3,n2,n1))
-  gm = np.mean(gx)
-  gs = np.std(gx)
-  gx = gx-gm
-  gx = gx/gs
-  gx0 = gx[:,:,:256]
-  gx1 = gx[:,:,256:]
-  gx = np.transpose(gx)
-  gx0 = np.transpose(gx0)
-  gx1 = np.transpose(gx1)
-  print(gx1.shape,gx0.shape)
-  
-  m1 = int(np.ceil(n1/16)*16)
-  m2 = int(np.ceil(n2/16)*16)
-  m3 = int(np.ceil(n3/16)*16)
-  m1,m2,m3=256,512,256  #m1,m2,m3=512,512,512
-  
-  fx0 = goPredict(m1,m2,m3,gx0)#make a prediction 
-  fx0 = np.transpose(fx0)
-  fx1 = goPredict(m1,m2,m3,gx1)#make a prediction 
-  fx1 = np.transpose(fx1)
-  fx = np.zeros((n1,n2,n3))
-  # fx[:256,:,:] = fx0
-  # fx[256:,:,:] = fx1
-  # fx = np.transpose(fx)
-
-  print(np.min(fx),np.max(fx))
-  fx0.tofile(fpath+"fp_"+'mseN_'+fname,format="%4") #  fx.tofile(fpath+"fpd.dat",format="%4")
 
 
 #m1,m2,m3:the dimensions of a subset
