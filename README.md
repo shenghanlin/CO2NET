@@ -1,8 +1,7 @@
-# CO2NET
+# CO2NET :shipit:
 Deep learning for characterizing CO2 migration in time-lapse seismic images [[PDF Version]](https://www.sciencedirect.com/science/article/abs/pii/S0016236122036304)
 
 
-## Introduction
 
 <!-- more -->
 
@@ -37,7 +36,7 @@ python apply_field.py  name #### Name is the name of the model used for predicti
 ```
 
 ## Citation
-```python
+```
 @article{SHENG2022CO2,
 title = {Deep learning for characterizing CO2 migration in time-lapse seismic images},
 journal = {Fuel},
