@@ -1,169 +1,133 @@
-#from numpy.random import seed
-#seed(12345)
-#from tensorflow import set_random_seed
-#set_random_seed(1234)
-import tensorflow as tf
+
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '3'
+from keras.callbacks import EarlyStopping, TensorBoard, ModelCheckpoint, Callback
+from keras.optimizers import SGD
+import os
 import random
 import numpy as np
 import skimage
 import matplotlib.pyplot as plt
+import tensorflow as tf
 from keras.models import *
 from keras.layers import *
 from keras.optimizers import *
 from keras.callbacks import ModelCheckpoint, LearningRateScheduler, ReduceLROnPlateau, TensorBoard
-from keras import backend as keras
+# from keras import backend as keras
+import keras.backend as K
 from utils import DataGenerator
 from unet import *
 from keras.utils import multi_gpu_model
-#from fnet import *
-fpath = '/data/jtli/hlsheng_dhale/'
+from mymetrics import *
 
-def main():
-  goTrain()
+class ParallerModelCheckPoint(Callback):
+    def __init__(self, single_model):
+        self.mode_to_save = single_model
+        
+    def on_epoch_end(self, epoch, logs={}):
+        print(r'save model: check'+sname+'/unet-%02d.hdf5'%(epoch+1))
+        self.mode_to_save.save_weights(r'check'+sname+'/unet-%02d.hdf5'%(epoch+1))
 
-def goTrain():
-  '''
-  # input image dimensions
-  params = {'batch_size':4,
-          'dim':(128,128,128),
+
+# 设置使用的显存以及GPU
+# 设置可用GPU
+os.environ['CUDA_VISIBLE_DEVICES'] = '2,5'
+
+# keras设置GPU参数
+'''
+config = tf.ConfigProto()
+config.gpu_options.per_process_gpu_memory_fraction = 0.888
+config.gpu_options.allow_growth = True
+session = tf.Session(config=config)
+set_session(session)
+'''
+use_gpu=True
+gpus=2
+batch_size=10
+sname='_mseRotationtest'
+# xception, mobilenetv2
+basemodel =  unet(input_size=(None, None, None,1))
+
+# model_file = './chekc_Pmse/unet-63.hdf5'
+# if os.path.exists(model_file):
+#     print('loading model:', model_file)
+#     basemodel.load_weights(model_file, by_name=True)
+
+if use_gpu:
+    parallermodel = multi_gpu_model(basemodel, gpus=gpus)
+    checkpoint = ParallerModelCheckPoint(basemodel)
+else:
+    parallermodel = basemodel
+    checkpoint = ModelCheckpoint(r'check'+sname+'/unet-{epoch:02d}.hdf5', save_weights_only=True, verbose=1)
+    
+# optimizer = SGD(lr=learning_rate, momentum=0.9, clipnorm=5.0)
+parallermodel.compile(optimizer = Adam(lr = 1e-4), loss = "mse", #cross_entropy_balanced, #mse binary_crossentropy
+                      metrics=['accuracy'])#,
+                                            # metric_precision,
+                                            # metric_recall,
+                                            # metric_F1score,
+                                            # mean_iou_keras])
+
+# parallermodel.compile(optimizer = Adam(lr = 1e-4), 
+#        loss = mymse, metrics=['accuracy',mean_iou_keras])#,
+#                                             # metric_precision,
+#                                             # metric_recall,
+#                                             # metric_F1score])
+
+params = {'batch_size':1,
+          'dim':(240,192,192),
+          'dim2':(240,192,192),
           'n_channels':1,
           'shuffle': True}
-  #seismPathT = "../data/train/seis/"
-  #co2PathT = "../data/train/fault/"
-  seismPath = fpath+"data/train/sx/"
-  co2Path = fpath+"data/train/lx/"
-  train_ID=[]
-  valid_ID=[]
-  c = 0
-  for sfile in os.listdir(seismPath):
-    if sfile.endswith(".dat"):
-      if(c<180):
-        train_ID.append(sfile)
-      else:
-        valid_ID.append(sfile)
-      c = c+1
-  train_generator = DataGenerator(dpath=seismPath,fpath=co2Path,
-                                  data_IDs=train_ID,**params)
-  valid_generator = DataGenerator(dpath=seismPath,fpath=co2Path,
-                                  data_IDs=valid_ID,**params)
+seismPath = "/home/hlsheng/hlsheng_dhale/data/train/sx/"
+co2Path = "/home/hlsheng/hlsheng_dhale/data/train/lx/"
+seismvPath = "/home/hlsheng/hlsheng_dhale/data/valid/sx/"
+sembvPath = "/home/hlsheng/hlsheng_dhale/data/valid/lx/"
 
-  '''
-  params = {'batch_size':4,
-          'dim':(128,128,128),
-          'n_channels':1,
-          'shuffle': True}
-  seismPath = "/data/jtli/hlsheng_dhale/data/train/sx/"
-  co2Path = "/data/jtli/hlsheng_dhale/data/train/lx/"
-  seismvPath = "/data/jtli/hlsheng_dhale/data/valid/sx/"
-  sembvPath = "/data/jtli/hlsheng_dhale/data/valid/lx/"
+train_ID=[]
+valid_ID=[]
+c = 0
+for sfile in os.listdir(seismPath):
+    if sfile.endswith(".dat") and not sfile.startswith(".DS"):
+        if(c<416):
+            train_ID.append(sfile)
+        # else:
+        #     valid_ID.append(sfile)
+        c = c+1
 
-  train_ID=[]
-  valid_ID=[]
-  c = 0
-  for sfile in os.listdir(seismPath):
-      if sfile.endswith(".dat"):
-          if(c<500):
-              train_ID.append(sfile)
-          # else:
-          #     valid_ID.append(sfile)
-          c = c+1
+cw = 0
+for sfile in os.listdir(seismvPath):
+    if sfile.endswith(".dat") and not sfile.startswith("f"):
+        if(cw<100):
+            # train_ID.append(sfile)
+        # else:
+            valid_ID.append(sfile)
+        cw = cw+1
 
-  cw = 0
-  for sfile in os.listdir(seismvPath):
-      if sfile.endswith(".dat"):
-          if(cw<125):
-              # train_ID.append(sfile)
-          # else:
-              valid_ID.append(sfile)
-          cw = cw+1
+train_generator = DataGenerator(dpath=seismPath,fpath=co2Path,
+                                data_IDs=train_ID,**params)
+valid_generator = DataGenerator(dpath=seismvPath,fpath=sembvPath,
+                                data_IDs=valid_ID,**params)
+# train_gen = data_generator(x_train, y_train, batch_size=batch_size)
+# test_gen = data_generator(x_test, y_test, batch_size=batch_size)
 
-  train_generator = DataGenerator(dpath=seismPath,fpath=co2Path,
-                                  data_IDs=train_ID,**params)
-  valid_generator = DataGenerator(dpath=seismvPath,fpath=sembvPath,
-                                  data_IDs=valid_ID,**params)
-  model = unet(input_size=(None, None, None,1))
-  #model = resnet(input_size=(None, None, None,1))
-  # model.compile(optimizer=Adam(lr=1e-4), loss=mybce)
-  model.summary()
+tensorboard = TensorBoard('log'+sname, write_graph=True)
 
-  # checkpoint
-  filepath=fpath+"check/fseg-{epoch:02d}.hdf5"
-  checkpoint = ModelCheckpoint(filepath, monitor='val_acc', 
-        verbose=1, save_best_only=False, mode='max')
-  logging = TrainValTensorBoard()
-  reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.2, 
-                                patience=2, min_lr=1e-8)
-  callbacks_list = [checkpoint, logging, reduce_lr]
-  print("data prepared, ready to train!")
-  # Fit the model
-  history=model.fit_generator(generator=train_generator,
-  validation_data=valid_generator,epochs=100,callbacks=callbacks_list,verbose=1)
-  model.save(fpath+'check/fseg.hdf5')
-  showHistory(history)
+earlystop = EarlyStopping(monitor='acc', patience=10, verbose=1)
+reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.2, 
+                                patience=4, min_lr=1e-8)
 
-def showHistory(history):
-  # list all data in history
-  print(history.history.keys())
-  fig = plt.figure(figsize=(10,6))
+print('begin training...')
+history=parallermodel.fit_generator(train_generator, 
+                        steps_per_epoch=c//batch_size, 
+                        epochs=100, 
+                        verbose=1, 
+                        callbacks=[reduce_lr, checkpoint, tensorboard], 
+                        validation_data=valid_generator, 
+                        validation_steps=cw//batch_size, 
+                        initial_epoch=0)
+np.save('history'+sname+'.npy',history.history) 
+showHistory(history)
 
-  # summarize history for accuracy
-  plt.plot(history.history['acc'])
-  plt.plot(history.history['val_acc'])
-  plt.title('Model accuracy',fontsize=20)
-  plt.ylabel('Accuracy',fontsize=20)
-  plt.xlabel('Epoch',fontsize=20)
-  plt.legend(['train', 'test'], loc='center right',fontsize=20)
-  plt.tick_params(axis='both', which='major', labelsize=18)
-  plt.tick_params(axis='both', which='minor', labelsize=18)
-  plt.show()
 
-  # summarize history for loss
-  fig = plt.figure(figsize=(10,6))
-  plt.plot(history.history['loss'])
-  plt.plot(history.history['val_loss'])
-  plt.title('Model loss',fontsize=20)
-  plt.ylabel('Loss',fontsize=20)
-  plt.xlabel('Epoch',fontsize=20)
-  plt.legend(['train', 'test'], loc='center right',fontsize=20)
-  plt.tick_params(axis='both', which='major', labelsize=18)
-  plt.tick_params(axis='both', which='minor', labelsize=18)
-  plt.show()
 
-class TrainValTensorBoard(TensorBoard):
-    def __init__(self, log_dir=fpath+'./log8', **kwargs):
-        # Make the original `TensorBoard` log to a subdirectory 'training'
-        training_log_dir = os.path.join(log_dir, 'training')
-        super(TrainValTensorBoard, self).__init__(training_log_dir, **kwargs)
-        # Log the validation metrics to a separate subdirectory
-        self.val_log_dir = os.path.join(log_dir, 'validation')
-    def set_model(self, model):
-        # Setup writer for validation metrics
-        self.val_writer = tf.summary.FileWriter(self.val_log_dir)
-        # self.val_writer = tf.summary.create_file_writer(self.val_log_dir)
-        super(TrainValTensorBoard, self).set_model(model)
-    def on_epoch_end(self, epoch, logs=None):
-        # Pop the validation logs and handle them separately with
-        # `self.val_writer`. Also rename the keys so that they can
-        # be plotted on the same figure with the training metrics
-        logs = logs or {}
-        val_logs = {k.replace('val_', ''): v for k, v in logs.items() if k.startswith('val_')}
-        for name, value in val_logs.items():
-            value = np.float64(value)
-            summary = tf.Summary()
-            summary_value = summary.value.add()
-            summary_value.simple_value = value.item()
-            summary_value.tag = name
-            self.val_writer.add_summary(summary, epoch)
-        self.val_writer.flush()
-        # Pass the remaining logs to `TensorBoard.on_epoch_end`
-        logs = {k: v for k, v in logs.items() if not k.startswith('val_')}
-        logs.update({'lr': keras.eval(self.model.optimizer.lr)})
-        super(TrainValTensorBoard, self).on_epoch_end(epoch, logs)
-    def on_train_end(self, logs=None):
-        super(TrainValTensorBoard, self).on_train_end(logs)
-        self.val_writer.close()
 
-if __name__ == '__main__':
-    main()

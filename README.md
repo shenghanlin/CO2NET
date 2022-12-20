@@ -1,46 +1,36 @@
 # CO2NET
 Deep learning for characterizing CO2 migration in time-lapse seismic images
 
-![cc](https://img.shields.io/badge/ahdai-go-orange.svg) [github标签网站](https://shields.io/)
+![cc](https://www.sciencedirect.com/science/article/abs/pii/S0016236122036304) [github标签网站](https://github.com/shenghanlin/CO2NET)
 
 项目描述从这里开始。
 
-## 上手指南
+## Introduction
 
 这些说明将为您提供在本地计算机上启动和运行的项目副本，以进行开发和测试。有关如何在实时系统上部署项目的说明，请参阅部署。
 
 <!-- more -->
 
-### 准备工作
-
-您需要安装软件以及如何安装它们。
+### Preparation
 
 ```c++
-Give examples
+python.__version__  '3.6.2'
+tf.__version__      '1.13.1'
+keras.__version__   '2.3.1'
 ```
 
-### 安装步骤
 
-一系列的示例，告诉如何搭建开发环境，如何让项目跑起来。
+## Data
 
-说出步骤是什么。
+I compress the data and then reduce the number of validation datasets because validation datasets do not affect the training. I have uploaded all these datasets to GDrive.
 
-```c++
-Give the example
-```
+https://drive.google.com/drive/folders/1hHDkq3qyqNUU3V221OaWHGTcn458YyNg?usp=sharing
 
-最后阐述安装完成后的情况，展示一下Demo。
+### Training
 
-## 运行测试
 
-说明如何运行此系统的自动化测试。
-
-### 细分为端到端测试
-
-解释这些测试的测试内容和原因。
-
-```c++
-Give an example
+```python
+python train.py
 ```
 
 ### 带有代码风格的测试
