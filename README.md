@@ -16,7 +16,7 @@ keras.__version__   '2.3.1'
 
 ## Data
 
-I compress the data and then reduce the number of validation datasets because validation datasets do not affect the training an. I have uploaded all these datasets to GDrive.
+I compress the data and then reduce the number of validation datasets because validation datasets do not affect the training. I have uploaded all these datasets to GDrive.
 
 https://drive.google.com/drive/folders/1hHDkq3qyqNUU3V221OaWHGTcn458YyNg?usp=sharing
 
